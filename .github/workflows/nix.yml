@@ -24,6 +24,7 @@ jobs:
 
     env:
       CACHIX_CACHE: ${{ inputs.cachix_cache || vars.CACHIX_CACHE_NAME || 'shrimply' }}
+      CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
     steps:
       - name: Maximize build space
@@ -40,16 +41,14 @@ jobs:
 
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          submodules: recursive
 
       - name: Install Nix
         uses: cachix/install-nix-action@v30
         with:
           extra_nix_config: |
             accept-flake-config = true
-            extra-substituters = https://cache.nixos-cuda.org
-            extra-trusted-public-keys = cache.nixos-cuda.org:74DUi4Ye579gUqzH4ziL9IyiJBlDpMRn9MBN8oNan9M=
+            extra-substituters = https://cache.nixos-cuda.org https://shrimply.cachix.org
+            extra-trusted-public-keys = cache.nixos-cuda.org:74DUi4Ye579gUqzH4ziL9IyiJBlDpMRn9MBN8oNan9M= shrimply.cachix.org-1:cAgdyBbGPgJZMWUP4PAQPVENeCYtGT7OPPkocvo+uuA=
 
       - name: Setup Cachix
         uses: cachix/cachix-action@v15
@@ -70,7 +69,5 @@ jobs:
 
       - name: Explicitly push build result to Cachix
         if: ${{ env.CACHIX_CACHE != '' && env.CACHIX_AUTH_TOKEN != '' }}
-        env:
-          CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
         run: |
           cachix push "${{ env.CACHIX_CACHE }}" ./result
