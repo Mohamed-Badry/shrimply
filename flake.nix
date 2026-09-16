@@ -71,7 +71,15 @@
               vtracerSrc = vtracer;
             }).overrideAttrs
               {
-                src = self;
+                src = final.lib.cleanSourceWith {
+                  src = self;
+                  filter =
+                    path: type:
+                    let
+                      rel = final.lib.removePrefix (toString self + "/") (toString path);
+                    in
+                    !(rel == "external" || final.lib.hasPrefix "external/" rel);
+                };
               };
         };
       pkgs = import nixpkgs {
